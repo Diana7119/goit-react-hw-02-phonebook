@@ -1,90 +1,96 @@
-import React, { Component } from 'react';
-import { Section } from './Section/Section';
-import { PhoneBook } from './PhoneBook/PhoneBook';
-import { Contacts } from './Contacts/Contacts';
-import { nanoid } from 'nanoid';
+import { Component } from 'react';
+import { nanoid } from 'nanoid'; 
+import { ContactForm } from './ContactForm/ContactForm';
+import { ContactList } from './ContactList/ContactList';
 import { Filter } from './Filter/Filter';
+import css from './App.module.css'; 
 
-class App extends Component {
+export class App extends Component {
   state = {
     contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+      { id: nanoid(), name: 'Rosie Simpson', number: '459-12-56' },
+      { id: nanoid(), name: 'Hermione Kline', number: '443-89-12' },
+      { id: nanoid(), name: 'Eden Clements', number: '645-17-79' },
+      { id: nanoid(), name: 'Annie Copeland', number: '227-91-26' },
     ],
     filter: '',
   };
 
-  onInput = evt => {
-    evt.preventDefault();
+ 
+  onChangeInput = evt => {
+    
+    const { name, value } = evt.currentTarget;
 
-    const inputName = evt.currentTarget.name.value.trim();
-    const inputNumber = evt.currentTarget.number.value.trim();
+   
+    this.setState({ [name]: value });
+  };
 
+  
+  addContact = ({ name, number }) => {
+   
     if (
-      this.state.contacts.find(
-        el => el.name.toLocaleLowerCase() === inputName.toLocaleLowerCase()
+      this.state.contacts.some(
+        value => value.name.toLocaleLowerCase() === name.toLocaleLowerCase()
       )
     ) {
-      alert(`${inputName} is already in contacts.`);
-      return;
+      
+      alert(`${name} is already in contacts`);
+    } else {
+      
+      this.setState(oldState => {
+        const list = [...oldState.contacts]; 
+        list.push({
+          id: nanoid(), 
+          name: name,
+          number: number,
+        });
+
+        return { contacts: list };
+      });
     }
-
-    this.setState(prevState => {
-      return {
-        name: inputName,
-        number: inputNumber,
-        contacts: [
-          ...prevState.contacts,
-          { number: inputNumber, name: inputName, id: nanoid() },
-        ],
-      };
-    });
-
-    evt.currentTarget.number.value = '';
-    evt.currentTarget.name.value = '';
   };
 
-  onSearch = evt => {
-    const { value } = evt.currentTarget;
-    this.setState({
-      filter: value,
-    });
+  
+  filter = () => {
+    const { contacts, filter } = this.state;
+
+    
+    const filteredContacts = contacts.filter(contact =>
+      contact.name.toLowerCase().includes(filter.toLowerCase())
+    );
+
+    
+    return filteredContacts;
   };
 
-  deleteContact = evt => {
-    this.setState({
-      contacts: this.state.contacts.filter(
-        contact => contact.id !== evt.currentTarget.id
-      ),
-    });
-  };
+ 
+  delContact = id => {
+
+   
+    const { contacts } = this.state;
+
+    
+    const filtred = contacts.filter(item => item.id !== id);
+
+   
+    this.setState({ contacts: filtred });
+  }
 
   render() {
-    const normalizeFilter = this.state.filter.toLocaleLowerCase();
-
-    const visibleContacts = this.state.contacts.filter(contact => {
-      return contact.name.toLocaleLowerCase().includes(normalizeFilter);
-    });
-
     return (
-      <div className="app">
-        <Section title="Phonebook">
-          <PhoneBook onInput={this.onInput} />
-        </Section>
+      <div className={css.conteiner}>
+        <h1>Phonebook</h1>
 
-        <Section title="Contacts">
-          <Contacts
-            contacts={visibleContacts}
-            deleteContact={this.deleteContact}
-          >
-            <Filter onSearch={this.onSearch} value={this.state.filter} />
-          </Contacts>
-        </Section>
+        {}
+        <ContactForm addContact={this.addContact} />
+        <h2>Contacts</h2>
+
+        {}
+        <Filter filter={this.state.filter} onChangeInput={this.onChangeInput} />
+
+        {}
+        <ContactList delContact={this.delContact} contacts={this.filter()} />
       </div>
     );
   }
 }
-
-export default App;
